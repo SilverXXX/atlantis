@@ -63,8 +63,9 @@ func (p Project) GetName() string {
 }
 
 type Autoplan struct {
-	WhenModified []string
-	Enabled      bool
+	WhenModified     []string
+	Enabled          bool
+	WhenTargetBranch string
 }
 
 type Stage struct {

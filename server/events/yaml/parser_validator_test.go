@@ -195,8 +195,9 @@ projects:
 						WorkflowName:     nil,
 						TerraformVersion: nil,
 						Autoplan: valid.Autoplan{
-							WhenModified: []string{"**/*.tf*"},
-							Enabled:      true,
+							WhenModified:     []string{"**/*.tf*"},
+							Enabled:          true,
+							WhenTargetBranch: ".*",
 						},
 						ApplyRequirements: nil,
 					},
@@ -220,8 +221,9 @@ projects:
 						Dir:       ".",
 						Workspace: "default",
 						Autoplan: valid.Autoplan{
-							WhenModified: []string{"**/*.tf*"},
-							Enabled:      true,
+							WhenModified:     []string{"**/*.tf*"},
+							Enabled:          true,
+							WhenTargetBranch: ".*",
 						},
 					},
 				},
@@ -242,8 +244,9 @@ projects:
 						Dir:       ".",
 						Workspace: "default",
 						Autoplan: valid.Autoplan{
-							WhenModified: []string{"**/*.tf*"},
-							Enabled:      true,
+							WhenModified:     []string{"**/*.tf*"},
+							Enabled:          true,
+							WhenTargetBranch: ".*",
 						},
 					},
 				},
@@ -265,8 +268,9 @@ workflows: ~
 						Dir:       ".",
 						Workspace: "default",
 						Autoplan: valid.Autoplan{
-							WhenModified: []string{"**/*.tf*"},
-							Enabled:      true,
+							WhenModified:     []string{"**/*.tf*"},
+							Enabled:          true,
+							WhenTargetBranch: ".*",
 						},
 					},
 				},
@@ -293,8 +297,9 @@ workflows:
 						Dir:       ".",
 						Workspace: "default",
 						Autoplan: valid.Autoplan{
-							WhenModified: []string{"**/*.tf*"},
-							Enabled:      true,
+							WhenModified:     []string{"**/*.tf*"},
+							Enabled:          true,
+							WhenTargetBranch: ".*",
 						},
 					},
 				},
@@ -328,8 +333,9 @@ workflows:
 						WorkflowName:     String("myworkflow"),
 						TerraformVersion: tfVersion,
 						Autoplan: valid.Autoplan{
-							WhenModified: []string{"**/*.tf*"},
-							Enabled:      true,
+							WhenModified:     []string{"**/*.tf*"},
+							Enabled:          true,
+							WhenTargetBranch: ".*",
 						},
 						ApplyRequirements: []string{"approved"},
 					},
@@ -366,8 +372,49 @@ workflows:
 						WorkflowName:     String("myworkflow"),
 						TerraformVersion: tfVersion,
 						Autoplan: valid.Autoplan{
-							WhenModified: []string{"**/*.tf*"},
-							Enabled:      false,
+							WhenModified:     []string{"**/*.tf*"},
+							Enabled:          false,
+							WhenTargetBranch: ".*",
+						},
+						ApplyRequirements: []string{"approved"},
+					},
+				},
+				Workflows: map[string]valid.Workflow{
+					"myworkflow": {
+						Name:  "myworkflow",
+						Apply: valid.DefaultApplyStage,
+						Plan:  valid.DefaultPlanStage,
+					},
+				},
+			},
+		},
+		{
+			description: "project field with when_target_branch",
+			input: `
+version: 3
+projects:
+- dir: .
+  workspace: myworkspace
+  terraform_version: v0.11.0
+  apply_requirements: [approved]
+  workflow: myworkflow
+  autoplan:
+    enabled: false
+    when_target_branch: "example"
+workflows:
+  myworkflow: ~`,
+			exp: valid.RepoCfg{
+				Version: 3,
+				Projects: []valid.Project{
+					{
+						Dir:              ".",
+						Workspace:        "myworkspace",
+						WorkflowName:     String("myworkflow"),
+						TerraformVersion: tfVersion,
+						Autoplan: valid.Autoplan{
+							WhenModified:     []string{"**/*.tf*"},
+							Enabled:          false,
+							WhenTargetBranch: "example",
 						},
 						ApplyRequirements: []string{"approved"},
 					},
@@ -404,8 +451,9 @@ workflows:
 						WorkflowName:     String("myworkflow"),
 						TerraformVersion: tfVersion,
 						Autoplan: valid.Autoplan{
-							WhenModified: []string{"**/*.tf*"},
-							Enabled:      false,
+							WhenModified:     []string{"**/*.tf*"},
+							Enabled:          false,
+							WhenTargetBranch: ".*",
 						},
 						ApplyRequirements: []string{"mergeable"},
 					},
@@ -442,8 +490,9 @@ workflows:
 						WorkflowName:     String("myworkflow"),
 						TerraformVersion: tfVersion,
 						Autoplan: valid.Autoplan{
-							WhenModified: []string{"**/*.tf*"},
-							Enabled:      false,
+							WhenModified:     []string{"**/*.tf*"},
+							Enabled:          false,
+							WhenTargetBranch: ".*",
 						},
 						ApplyRequirements: []string{"mergeable", "approved"},
 					},
@@ -556,8 +605,9 @@ projects:
 						Dir:       ".",
 						Workspace: "workspace",
 						Autoplan: valid.Autoplan{
-							WhenModified: []string{"**/*.tf*"},
-							Enabled:      true,
+							WhenModified:     []string{"**/*.tf*"},
+							Enabled:          true,
+							WhenTargetBranch: ".*",
 						},
 					},
 					{
@@ -565,8 +615,9 @@ projects:
 						Dir:       ".",
 						Workspace: "workspace",
 						Autoplan: valid.Autoplan{
-							WhenModified: []string{"**/*.tf*"},
-							Enabled:      true,
+							WhenModified:     []string{"**/*.tf*"},
+							Enabled:          true,
+							WhenTargetBranch: ".*",
 						},
 					},
 				},
@@ -597,8 +648,9 @@ workflows:
 						Dir:       ".",
 						Workspace: "default",
 						Autoplan: valid.Autoplan{
-							WhenModified: []string{"**/*.tf*"},
-							Enabled:      true,
+							WhenModified:     []string{"**/*.tf*"},
+							Enabled:          true,
+							WhenTargetBranch: ".*",
 						},
 					},
 				},
@@ -659,8 +711,9 @@ workflows:
 						Dir:       ".",
 						Workspace: "default",
 						Autoplan: valid.Autoplan{
-							WhenModified: []string{"**/*.tf*"},
-							Enabled:      true,
+							WhenModified:     []string{"**/*.tf*"},
+							Enabled:          true,
+							WhenTargetBranch: ".*",
 						},
 					},
 				},
@@ -717,8 +770,9 @@ workflows:
 						Dir:       ".",
 						Workspace: "default",
 						Autoplan: valid.Autoplan{
-							WhenModified: []string{"**/*.tf*"},
-							Enabled:      true,
+							WhenModified:     []string{"**/*.tf*"},
+							Enabled:          true,
+							WhenTargetBranch: ".*",
 						},
 					},
 				},
@@ -771,8 +825,9 @@ workflows:
 						Dir:       ".",
 						Workspace: "default",
 						Autoplan: valid.Autoplan{
-							WhenModified: []string{"**/*.tf*"},
-							Enabled:      true,
+							WhenModified:     []string{"**/*.tf*"},
+							Enabled:          true,
+							WhenTargetBranch: ".*",
 						},
 					},
 				},

@@ -17,6 +17,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/runatlantis/atlantis/server/events/yaml/valid"
@@ -37,7 +38,7 @@ type ProjectFinder interface {
 	// DetermineProjectsViaConfig returns the list of projects that were modified
 	// based on modifiedFiles and the repo's config.
 	// absRepoDir is the path to the cloned repo on disk.
-	DetermineProjectsViaConfig(log *logging.SimpleLogger, modifiedFiles []string, config valid.RepoCfg, absRepoDir string) ([]valid.Project, error)
+	DetermineProjectsViaConfig(log *logging.SimpleLogger, pull models.PullRequest, modifiedFiles []string, config valid.RepoCfg, absRepoDir string) ([]valid.Project, error)
 }
 
 // DefaultProjectFinder implements ProjectFinder.
@@ -78,7 +79,7 @@ func (p *DefaultProjectFinder) DetermineProjects(log *logging.SimpleLogger, modi
 }
 
 // See ProjectFinder.DetermineProjectsViaConfig.
-func (p *DefaultProjectFinder) DetermineProjectsViaConfig(log *logging.SimpleLogger, modifiedFiles []string, config valid.RepoCfg, absRepoDir string) ([]valid.Project, error) {
+func (p *DefaultProjectFinder) DetermineProjectsViaConfig(log *logging.SimpleLogger, pull models.PullRequest, modifiedFiles []string, config valid.RepoCfg, absRepoDir string) ([]valid.Project, error) {
 	var projects []valid.Project
 	for _, project := range config.Projects {
 		log.Debug("checking if project at dir %q workspace %q was modified", project.Dir, project.Workspace)
@@ -106,7 +107,12 @@ func (p *DefaultProjectFinder) DetermineProjectsViaConfig(log *logging.SimpleLog
 				log.Debug("file %q matched pattern", file)
 				_, err := os.Stat(filepath.Join(absRepoDir, project.Dir))
 				if err == nil {
-					projects = append(projects, project)
+					match, _ := regexp.MatchString(pull.BaseBranch, project.Autoplan.WhenTargetBranch)
+					if match {
+						projects = append(projects, project)
+					} else {
+						log.Debug("project not included because BaseBranch %q does not match target %q", pull.BaseBranch, project.Autoplan.WhenTargetBranch)
+					}
 				} else {
 					log.Debug("project at dir %q not included because dir does not exist", project.Dir)
 				}

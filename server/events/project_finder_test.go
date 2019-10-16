@@ -14,6 +14,7 @@
 package events_test
 
 import (
+	"github.com/runatlantis/atlantis/server/events/models"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -264,6 +265,7 @@ func TestDefaultProjectFinder_DetermineProjectsViaConfig(t *testing.T) {
 	cases := []struct {
 		description  string
 		config       valid.RepoCfg
+		pull         models.PullRequest
 		modified     []string
 		expProjPaths []string
 	}{
@@ -277,12 +279,14 @@ func TestDefaultProjectFinder_DetermineProjectsViaConfig(t *testing.T) {
 					{
 						Dir: ".",
 						Autoplan: valid.Autoplan{
-							Enabled:      false,
-							WhenModified: []string{"**/*.tf"},
+							Enabled:          false,
+							WhenModified:     []string{"**/*.tf"},
+							WhenTargetBranch: ".*",
 						},
 					},
 				},
 			},
+			pull:         models.PullRequest{BaseBranch: "master"},
 			modified:     []string{"main.tf"},
 			expProjPaths: []string{"."},
 		},
@@ -293,12 +297,14 @@ func TestDefaultProjectFinder_DetermineProjectsViaConfig(t *testing.T) {
 					{
 						Dir: ".",
 						Autoplan: valid.Autoplan{
-							Enabled:      true,
-							WhenModified: []string{"**/*.tf"},
+							Enabled:          true,
+							WhenModified:     []string{"**/*.tf"},
+							WhenTargetBranch: ".*",
 						},
 					},
 				},
 			},
+			pull:         models.PullRequest{BaseBranch: "master"},
 			modified:     []string{"main.tf"},
 			expProjPaths: []string{"."},
 		},
@@ -309,12 +315,14 @@ func TestDefaultProjectFinder_DetermineProjectsViaConfig(t *testing.T) {
 					{
 						Dir: "project",
 						Autoplan: valid.Autoplan{
-							Enabled:      true,
-							WhenModified: []string{"**/*.tf"},
+							Enabled:          true,
+							WhenModified:     []string{"**/*.tf"},
+							WhenTargetBranch: ".*",
 						},
 					},
 				},
 			},
+			pull:         models.PullRequest{BaseBranch: "master"},
 			modified:     []string{"main.tf"},
 			expProjPaths: nil,
 		},
@@ -325,12 +333,14 @@ func TestDefaultProjectFinder_DetermineProjectsViaConfig(t *testing.T) {
 					{
 						Dir: "project1",
 						Autoplan: valid.Autoplan{
-							Enabled:      true,
-							WhenModified: []string{"../**/*.tf"},
+							Enabled:          true,
+							WhenModified:     []string{"../**/*.tf"},
+							WhenTargetBranch: ".*",
 						},
 					},
 				},
 			},
+			pull:         models.PullRequest{BaseBranch: "master"},
 			modified:     []string{"main.tf"},
 			expProjPaths: []string{"project1"},
 		},
@@ -341,12 +351,14 @@ func TestDefaultProjectFinder_DetermineProjectsViaConfig(t *testing.T) {
 					{
 						Dir: "project3",
 						Autoplan: valid.Autoplan{
-							Enabled:      true,
-							WhenModified: []string{"*.tf"},
+							Enabled:          true,
+							WhenModified:     []string{"*.tf"},
+							WhenTargetBranch: ".*",
 						},
 					},
 				},
 			},
+			pull:         models.PullRequest{BaseBranch: "master"},
 			modified:     []string{"project3/main.tf"},
 			expProjPaths: nil,
 		},
@@ -357,28 +369,66 @@ func TestDefaultProjectFinder_DetermineProjectsViaConfig(t *testing.T) {
 					{
 						Dir: ".",
 						Autoplan: valid.Autoplan{
-							Enabled:      true,
-							WhenModified: []string{"*.tf"},
+							Enabled:          true,
+							WhenModified:     []string{"*.tf"},
+							WhenTargetBranch: ".*",
 						},
 					},
 					{
 						Dir: "project1",
 						Autoplan: valid.Autoplan{
-							Enabled:      true,
-							WhenModified: []string{"../modules/module/*.tf", "**/*.tf"},
+							Enabled:          true,
+							WhenModified:     []string{"../modules/module/*.tf", "**/*.tf"},
+							WhenTargetBranch: ".*",
 						},
 					},
 					{
 						Dir: "project2",
 						Autoplan: valid.Autoplan{
-							Enabled:      true,
-							WhenModified: []string{"**/*.tf"},
+							Enabled:          true,
+							WhenModified:     []string{"**/*.tf"},
+							WhenTargetBranch: ".*",
 						},
 					},
 				},
 			},
+			pull:         models.PullRequest{BaseBranch: "master"},
 			modified:     []string{"main.tf", "modules/module/another.tf", "project2/nontf.txt"},
 			expProjPaths: []string{".", "project1"},
+		},
+		{
+			description: "multiple projects, only 1 target branch match",
+			config: valid.RepoCfg{
+				Projects: []valid.Project{
+					{
+						Dir: ".",
+						Autoplan: valid.Autoplan{
+							Enabled:          true,
+							WhenModified:     []string{"*.tf"},
+							WhenTargetBranch: "master",
+						},
+					},
+					{
+						Dir: "project1",
+						Autoplan: valid.Autoplan{
+							Enabled:          true,
+							WhenModified:     []string{"../modules/module/*.tf", "**/*.tf"},
+							WhenTargetBranch: "staging",
+						},
+					},
+					{
+						Dir: "project2",
+						Autoplan: valid.Autoplan{
+							Enabled:          true,
+							WhenModified:     []string{"**/*.tf"},
+							WhenTargetBranch: "prod",
+						},
+					},
+				},
+			},
+			pull:         models.PullRequest{BaseBranch: "staging"},
+			modified:     []string{"main.tf", "modules/module/another.tf", "project2/nontf.txt"},
+			expProjPaths: []string{"project1"},
 		},
 		{
 			description: ".tfvars file modified",
@@ -387,12 +437,14 @@ func TestDefaultProjectFinder_DetermineProjectsViaConfig(t *testing.T) {
 					{
 						Dir: "project2",
 						Autoplan: valid.Autoplan{
-							Enabled:      true,
-							WhenModified: []string{"*.tf*"},
+							Enabled:          true,
+							WhenModified:     []string{"*.tf*"},
+							WhenTargetBranch: ".*",
 						},
 					},
 				},
 			},
+			pull:         models.PullRequest{BaseBranch: "master"},
 			modified:     []string{"project2/terraform.tfvars"},
 			expProjPaths: []string{"project2"},
 		},
@@ -401,7 +453,7 @@ func TestDefaultProjectFinder_DetermineProjectsViaConfig(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.description, func(t *testing.T) {
 			pf := events.DefaultProjectFinder{}
-			projects, err := pf.DetermineProjectsViaConfig(logging.NewNoopLogger(), c.modified, c.config, tmpDir)
+			projects, err := pf.DetermineProjectsViaConfig(logging.NewNoopLogger(), c.pull, c.modified, c.config, tmpDir)
 			Ok(t, err)
 			Equals(t, len(c.expProjPaths), len(projects))
 			for i, proj := range projects {

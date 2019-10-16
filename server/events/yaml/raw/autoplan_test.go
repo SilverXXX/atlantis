@@ -19,8 +19,9 @@ func TestAutoPlan_UnmarshalYAML(t *testing.T) {
 			description: "omit unset fields",
 			input:       "",
 			exp: raw.Autoplan{
-				Enabled:      nil,
-				WhenModified: nil,
+				Enabled:          nil,
+				WhenModified:     nil,
+				WhenTargetBranch: nil,
 			},
 		},
 		{
@@ -28,10 +29,12 @@ func TestAutoPlan_UnmarshalYAML(t *testing.T) {
 			input: `
 enabled: true
 when_modified: ["something-else"]
+when_target_branch: "branch"
 `,
 			exp: raw.Autoplan{
-				Enabled:      Bool(true),
-				WhenModified: []string{"something-else"},
+				Enabled:          Bool(true),
+				WhenModified:     []string{"something-else"},
+				WhenTargetBranch: String("branch"),
 			},
 		},
 		{
@@ -39,10 +42,12 @@ when_modified: ["something-else"]
 			input: `
 enabled: false
 when_modified: ["something-else"]
+when_target_branch: "branch"
 `,
 			exp: raw.Autoplan{
-				Enabled:      Bool(false),
-				WhenModified: []string{"something-else"},
+				Enabled:          Bool(false),
+				WhenModified:     []string{"something-else"},
+				WhenTargetBranch: String("branch"),
 			},
 		},
 		{
@@ -51,10 +56,25 @@ when_modified: ["something-else"]
 enabled: false
 when_modified:
 -
+when_target_branch: "branch"
 `,
 			exp: raw.Autoplan{
-				Enabled:      Bool(false),
-				WhenModified: []string{""},
+				Enabled:          Bool(false),
+				WhenModified:     []string{""},
+				WhenTargetBranch: String("branch"),
+			},
+		},
+		{
+			description: "target branch empty",
+			input: `
+enabled: true
+when_modified: ["something-else"]
+when_target_branch: ""
+`,
+			exp: raw.Autoplan{
+				Enabled:          Bool(true),
+				WhenModified:     []string{"something-else"},
+				WhenTargetBranch: String(""),
 			},
 		},
 	}
@@ -108,8 +128,9 @@ func TestAutoplan_ToValid(t *testing.T) {
 			description: "nothing set",
 			input:       raw.Autoplan{},
 			exp: valid.Autoplan{
-				Enabled:      true,
-				WhenModified: []string{"**/*.tf*"},
+				Enabled:          true,
+				WhenModified:     []string{"**/*.tf*"},
+				WhenTargetBranch: ".*",
 			},
 		},
 		{
@@ -118,8 +139,9 @@ func TestAutoplan_ToValid(t *testing.T) {
 				WhenModified: []string{},
 			},
 			exp: valid.Autoplan{
-				Enabled:      true,
-				WhenModified: []string{},
+				Enabled:          true,
+				WhenModified:     []string{},
+				WhenTargetBranch: ".*",
 			},
 		},
 		{
@@ -128,8 +150,9 @@ func TestAutoplan_ToValid(t *testing.T) {
 				Enabled: Bool(false),
 			},
 			exp: valid.Autoplan{
-				Enabled:      false,
-				WhenModified: []string{"**/*.tf*"},
+				Enabled:          false,
+				WhenModified:     []string{"**/*.tf*"},
+				WhenTargetBranch: ".*",
 			},
 		},
 		{
@@ -138,8 +161,9 @@ func TestAutoplan_ToValid(t *testing.T) {
 				Enabled: Bool(true),
 			},
 			exp: valid.Autoplan{
-				Enabled:      true,
-				WhenModified: []string{"**/*.tf*"},
+				Enabled:          true,
+				WhenModified:     []string{"**/*.tf*"},
+				WhenTargetBranch: ".*",
 			},
 		},
 	}

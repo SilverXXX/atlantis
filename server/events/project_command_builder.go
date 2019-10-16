@@ -129,7 +129,7 @@ func (p *DefaultProjectCommandBuilder) buildPlanAllCommands(ctx *CommandContext,
 			return nil, errors.Wrapf(err, "parsing %s", yaml.AtlantisYAMLFilename)
 		}
 		ctx.Log.Info("successfully parsed %s file", yaml.AtlantisYAMLFilename)
-		matchingProjects, err := p.ProjectFinder.DetermineProjectsViaConfig(ctx.Log, modifiedFiles, repoCfg, repoDir)
+		matchingProjects, err := p.ProjectFinder.DetermineProjectsViaConfig(ctx.Log, ctx.Pull, modifiedFiles, repoCfg, repoDir)
 		if err != nil {
 			return nil, err
 		}
